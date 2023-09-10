@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gatherer-1
+spec:
+  parallelism: 20
+  template:
+    metadata:
+      name: gatherer-1
+    spec:
+      containers:
+        - name: c
+          image: gitlab.lrz.de:5005/swc/tls-gatherer/worker-image
+          volumeMounts:
+            - name: nfs-swc
+              mountPath: "/mnt/TRACES"
+            - name: dockersock
+              mountPath: "/var/run/docker.sock"
+            - name: gatherer-code
+              mountPath: "/mnt/host"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: OnFailure
+      volumes:
+        - name: nfs-swc
+          persistentVolumeClaim:
+            claimName: nfs-swc
+        - name: gatherer-code
+          persistentVolumeClaim:
+            claimName: gatherer-code
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
+

@@ -1,0 +1,10 @@
+version: '3'
+services:
+  gatherer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes: 
+      - "./src:/mnt/host/"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/mnt/traces/:/mnt/TRACES/"

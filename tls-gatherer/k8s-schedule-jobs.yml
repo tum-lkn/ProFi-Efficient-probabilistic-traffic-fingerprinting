@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: schedule-jobs-2
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      name: schedule-jobs-2
+    spec:
+      containers:
+        - name: c
+          image: gitlab.lrz.de:5005/swc/tls-gatherer/job-scheduler
+          volumeMounts:
+            - name: gatherer-code
+              mountPath: "/mnt/host"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: OnFailure
+      volumes:
+        - name: gatherer-code
+          persistentVolumeClaim:
+            claimName: gatherer-code
+
