@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fingerprint-trainer-01
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      name: fingerprint-trainer-01
+    spec:
+      containers:
+        - name: c
+          image: gitlab.lrz.de:5005/swc/tls-fingerprint
+          command: ["python3", "/opt/project/scripts/redis_worker.py"]
+          # command: ["bash", "-c", "\"echo $PYTHONPATH\""]
+          volumeMounts:
+            - name: code
+              mountPath: "/opt/project"
+            - name: cache
+              mountPath: "/opt/project/data/cache"
+            - name: results
+              mountPath: "/opt/project/data/results"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: PYTHONPATH
+              value: '/opt/project'
+          resources:
+            requests:
+              cpu: "1000m"
+      nodeSelector:
+        nodename: k8sw01
+      imagePullSecrets:
+        - name: tls-fingerprint-fegistry-pull
+      restartPolicy: OnFailure
+      volumes:
+        - name: results
+          persistentVolumeClaim:
+            claimName: grid-search
+        - name: code
+          hostPath:
+            path: /mnt/code/tls-fingerprint
+        - name: cache
+          hostPath:
+            path: /mnt/cache
